@@ -4,23 +4,22 @@
 % NB fire is modelled as the integral of phi of G
 tic
 %% Set options for plots/movies
-close all
 fprintf('\n');
 DO_MOVIE = 0; % i.e. write movie to avi file for playback, else just plots
 SPACE_TIME_PLOT = 1;
 FINAL_PLOT = 1;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 200; % N+1 grid points
+N = 400; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
-n = 8000; % number of time steps
+n = 5000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
 alpha_p = @(alpha, alpha_s, p) alpha + alpha_s.*p;
-J_F_fun = @(x, a, sigma_F) 1./(pi*sigma_F*(1+((x-a).^2)/sigma_F^2));%exp( -( (a-x).^2)/(2*sigma_F^2) )/(sqrt(2*pi*sigma_F^2));
-W_fun = @(x, a, sigma_W) 1./(pi*sigma_W*(1+((x-a).^2)/sigma_W^2));%exp( -( (a-x).^2 )/(2*sigma_W^2) )/(sqrt(2*pi*sigma_F^2));
+J_F_fun = @(x, a, sigma_F) exp( -( (a-x).^2)/(2*sigma_F^2) )/(sqrt(2*pi*sigma_F^2)); %1./(pi*sigma_F*(1+((x-a).^2)/sigma_F^2));%
+W_fun = @(x, a, sigma_W) exp( -( (a-x).^2 )/(2*sigma_W^2) )/(sqrt(2*pi*sigma_F^2)); %1./(pi*sigma_W*(1+((x-a).^2)/sigma_W^2));%
 phi = @(f_0_fun, f_1, g, t_2_fun, s_2) f_0_fun + (f_1-f_0_fun)./(1 + exp(-(g-t_2_fun)/s_2));
 %% Model parameters (values from PNAS paper)
 p_left=0;
@@ -28,8 +27,8 @@ p_right=1;
 p_0=p_left;
 p_1=(p_right-p_left)/L;
 
-alpha = 1.1;
-alpha_s = 0;
+alpha = 0.5;
+alpha_s = 1.25;
 
 f_0_ref = 0.1;
 f_1_ref = 0.9;
@@ -39,13 +38,13 @@ s_2 = 0.05;% s_2's standard value is 0.05
 linestyles = ['-',':','-.'];
 linecolor = ['r','k','b'];
 
-for IC = 2 % 1 for high grass IC, 2 for low grass IC, 3 for mixed spatial stripes between the two species, 4 for a sigmoidal transition, 5+ for random
-    disp = [0.005 0.01 0.05];
+for IC = 1 % 1 for high grass IC, 2 for low grass IC, 3 for mixed spatial stripes between the two species, 4 for a sigmoidal transition, 5+ for random
+    disp = 0.1;
     relative_error = zeros(length(disp),n-1);
     for count = 1:length(disp)
         
         sigma_F = disp(count); % seed dispersal radius forest trees
-        sigma_W = disp(count)/2;%disp(count); % fire spread radius
+        sigma_W = 0.01;%disp(count); % fire spread radius
         
         %% Set up the initial distributions of the cover types on the grid
         % each row is one time step of the simulation
