@@ -11,16 +11,16 @@ SPACE_TIME_PLOT = 0;
 FINAL_PLOT = 1;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 400; % N+1 grid points
+N = 300; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
-h = 0.1; % time discretisation parameter
-n = 5000; % number of time steps
+h = 0.05; % time discretisation parameter
+n = 2000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
 alpha_p = @(alpha, alpha_s, p) alpha + alpha_s.*p;
-J_F_fun = @(x, a, sigma_F) 1./(pi*sigma_F*(1+((x-a).^2)/sigma_F^2));%exp( -( (a-x).^2)/(2*sigma_F^2) )/(sqrt(2*pi*sigma_F^2));
-W_fun = @(x, a, sigma_W) 1./(pi*sigma_W*(1+((x-a).^2)/sigma_W^2));%exp( -( (a-x).^2 )/(2*sigma_W^2) )/(sqrt(2*pi*sigma_F^2));
+J_F_fun = @(x, a, sigma_F) exp( -( (a-x).^2)/(2*sigma_F^2) )/(sqrt(2*pi*sigma_F^2)); % 1./(pi*sigma_F*(1+((x-a).^2)/sigma_F^2));
+W_fun = @(x, a, sigma_W) exp( -( (a-x).^2 )/(2*sigma_W^2) )/(sqrt(2*pi*sigma_F^2)); % 1./(pi*sigma_W*(1+((x-a).^2)/sigma_W^2));
 phi = @(f_0_fun, f_1, g, t_2_fun, s_2) f_0_fun + (f_1-f_0_fun)./(1 + exp(-(g-t_2_fun)/s_2));
 %% Model parameters (values from PNAS paper)
 p_left=0;
@@ -38,12 +38,13 @@ s_2 = 0.05;% s_2's standard value is 0.05
 
 %linestyles = ['-',':','-.','-',':','-.'];
 fill_color = ['r','k','b','c','m','g'];
-disp = 0.05;
-ICs = [1 2 3];
+disp = 0.01;
+ICs = 10;
 sol_norm = zeros(length(disp),length(ICs));
 relative_error = zeros(length(disp),n-1);
 
-for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stripes between the two species, 3 for a sigmoidal transition, 5+ for random
+for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stripes between the two species, 
+    % 3 for a sigmoidal transition, 6+ for random IC
     for count = 1:length(disp)
         
         sigma_F = disp(count); % seed dispersal radius forest trees
@@ -61,8 +62,10 @@ for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stri
             G0 = 0.5*(1+cos(12*pi*(0:delta:L)));
         elseif IC == 3
             G0 = phi(0.95, 0.01, 0:delta:L, 0.5, 0.05);
+        elseif IC == 5
+            G0 = 0.5*(1+cos(24*pi*(0:delta:L)));
         else
-            G0 = rand(1,N+1);
+            %G0 = rand(1,N+1);
         end
         LB_G = fliplr(G0(1,2:end));
         RB_G = fliplr(G0(1,1:end-1));
@@ -136,9 +139,31 @@ for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stri
             figure(1);
             %f.Name = ['Simulation time: t = ', num2str((j-1)*h)];
             %subplot(2,2,IC), plot(X,G(end,N+1:2*N+1),'r','LineWidth',2,'LineStyle',linestyles(count));
-            subplot(2,2,IC), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
+            subplot(2,2,1), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
             hold on;
-            subplot(2,2,IC), area(0:delta:L,G(end,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+            subplot(2,2,1), area(0:delta:L,G(20,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+            title('t = 1');
+            xlim([0 L]);
+            ylim([0 1]);
+            %
+            subplot(2,2,2), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
+            hold on;
+            subplot(2,2,2), area(0:delta:L,G(100,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+            title('t = 5');
+            xlim([0 L]);
+            ylim([0 1]);
+            %
+            subplot(2,2,3), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
+            hold on;
+            subplot(2,2,3), area(0:delta:L,G(200,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+            title('t = 10');
+            xlim([0 L]);
+            ylim([0 1]);
+            %
+            subplot(2,2,4), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
+            hold on;
+            subplot(2,2,4), area(0:delta:L,G(end,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+            title('Final time');
             xlim([0 L]);
             ylim([0 1]);
             legend('Forest','Grass','Location','SouthWest');
@@ -196,19 +221,19 @@ set(gca,'linewidth',4);
 set(gca,'FontSize',20);
 
 %% Plot the L^1 norm of the solution versus the dispersal parameter
-figure(5);
-for i = 1:3
-    hold on;
-    scatter(disp,sol_norm(:,i),'filled',fill_color(i));
-    hold on;
-end
-xlabel('\sigma');
-ylabel('|G|');
-xlim([0.1 0.3])
-ylim([0 1])
-yticks([0 0.2 0.4 0.6 0.8 1]);
-set(gca,'linewidth',2);
-set(gca,'FontSize',15);
+% figure(5);
+% for i = 1:3
+%     hold on;
+%     scatter(disp,sol_norm(:,i),'filled',fill_color(i));
+%     hold on;
+% end
+% xlabel('\sigma');
+% ylabel('|G|');
+% xlim([0.1 0.3])
+% ylim([0 1])
+% yticks([0 0.2 0.4 0.6 0.8 1]);
+% set(gca,'linewidth',2);
+% set(gca,'FontSize',15);
 
 %%
 toc

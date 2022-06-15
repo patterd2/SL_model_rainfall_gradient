@@ -23,10 +23,11 @@ f_1_ref = 0.9;
 t_2_ref = 0.4;
 s_2 = 0.05; % s_2's standard value is 0.05
 
-disp = 0.1:0.01:0.2;
+disp = 0.02;%0.01:0.01:0.2;
 %disp = fliplr(disp);
 branches = 1;
-sol_norm = zeros(branches,length(disp)); error = zeros(branches,length(disp));
+sol_norm = zeros(branches,length(disp)); 
+error = zeros(branches,length(disp));
 principal_eig = zeros(branches,length(disp));
 error_tolerance = 1e-10; % for the nonlinear solver
 fig_count = 0;
@@ -41,19 +42,21 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         sigma_F = disp(count); % seed dispersal radius forest trees
         sigma_W = 0.01; % fire spread radius
         %% Set up the initial distributions of the cover types on the grid
-        if jj == 19 && count == 1
-            G = 1-0.15*(0:delta:L);%(1+cos(12*pi*(0:delta:L)));
-        elseif jj == 71 && count == 1
-            G = 0.05*(1+cos(2*pi*(0:delta:L)));
-        elseif jj == 11 && count == 1
-            G = 0.15*(1 + cos(4*pi*(0:delta:L)) + sin(6*pi*(0:delta:L)) );
-        elseif jj == 17 && count == 1
-            G = phi(0.95, 0.05, 0:delta:L, 0.5, 0.05); % front pinned branch first
-        elseif jj == 3 && count == 1
-            G = phi(0.95, 0.6, 0:delta:L, 0.55, 0.15); % trying to find unstable branch connecting saddles
-        elseif jj == 1 && count == 1
-            G = 0.44*(0:delta:L).^2 - 0.62*(0:delta:L)+0.29;%phi(0.4, 0.1, 0:delta:L, 0.2, 0.1);%0.2 - 0.1*(0:delta:L); %.*(1+cos(12*pi*(0:delta:L)));
-        end
+        %G = G + 0.01*(rand(1,N+1)-0.5);
+        %G = 0.5.*(1+cos(12*pi*(0:delta:L))).*(1-(0:delta:L)); % sinusoidal initial condition
+        %         if jj == 19 && count == 1
+        %             G = 1-0.15*(0:delta:L);%(1+cos(12*pi*(0:delta:L)));
+        %         elseif jj == 71 && count == 1
+        %             G = 0.05*(1+cos(2*pi*(0:delta:L)));
+        %         elseif jj == 11 && count == 1
+        %             G = 0.15*(1 + cos(4*pi*(0:delta:L)) + sin(6*pi*(0:delta:L)) );
+        %         elseif jj == 17 && count == 1
+        %             G = phi(0.95, 0.05, 0:delta:L, 0.5, 0.05); % front pinned branch first
+        %         elseif jj == 3 && count == 1
+        %             G = phi(0.95, 0.6, 0:delta:L, 0.55, 0.15); % trying to find unstable branch connecting saddles
+        %         elseif jj == 1 && count == 1
+        %             G = 0.44*(0:delta:L).^2 - 0.62*(0:delta:L)+0.29;%phi(0.4, 0.1, 0:delta:L, 0.2, 0.1);%0.2 - 0.1*(0:delta:L); %.*(1+cos(12*pi*(0:delta:L)));
+        %         end
         %% plot the initial condition for this simulation
         figure(fig_count);
         subplot(1,2,1), plot(0:delta:L,G,'-.k','LineWidth',2);
@@ -92,11 +95,11 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         C_F = max(temp_normalise_F);
         %% Solve the nonlinear problem f(x) = 0 for the equilibrium solution
         % first version is the "reflecting" boundary condition
-        %f = @(x) - alpha_grad.*((delta*sum( tempF.*(1 - repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*x + ...
-        %    phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*(repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
+        f = @(x) - alpha_grad.*((delta*sum( tempF.*(1 - repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*x + ...
+            phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*(repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
         % second version is the "open" boundary condition
-        f = @(x) - alpha_grad.*((delta*sum( tempF.*(repmat([fliplr(0*x(1:N)) 1-x 0*fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*(x) + ...
-            phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*((repmat([0*fliplr(x(1:N)) x 0*fliplr(x(2:N+1))],N+1,1))).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
+%         f = @(x) - alpha_grad.*((delta*sum( tempF.*(repmat([fliplr(0*x(1:N)) 1-x 0*fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*(x) + ...
+%             phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*((repmat([0*fliplr(x(1:N)) x 0*fliplr(x(2:N+1))],N+1,1))).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
         options = optimoptions('fsolve','Display','none','OptimalityTolerance',...
             error_tolerance,'StepTolerance',error_tolerance);
         [G,fval,exitflag,output,jacobian] = fsolve(f,G,options); % use previous solution value as initial guess for nonlinear solve

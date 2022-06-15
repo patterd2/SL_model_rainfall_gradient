@@ -37,10 +37,10 @@ mu_s = 0;
 nu = 0.05;
 nu_s = 0;
 
-alpha = 1.05;
-alpha_s = 0.25;
+alpha = 0.55;
+alpha_s = 0.45;
 
-beta = 0.2;
+beta = 1.55;
 beta_s = 0.05;
 
 gamma = 0;
@@ -54,7 +54,7 @@ f_1_ref = 0.9;
 t_2_ref = 0.4;
 s_2 = 0.05;% s_2 standard value is 0.05
 
-disp = 0.02;
+disp = 0.01;
 sigma_F = disp; % seed dispersal radius forest trees
 sigma_T = disp; % seed dispersal radius savanna trees
 sigma_W = disp; % fire spread radius
@@ -63,7 +63,7 @@ sigma_W = disp; % fire spread radius
 % solution is a block matrix [LB; SOL; RB] where LB and RB are fixed
 % boundary conditions corresponding to a "Dirichlet type boundary"
 
-G0 = 0.9*ones(1,N+1); %phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
+G0 = phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
 S0 = 0.1*ones(1,N+1);
 T0 = 0.1*ones(1,N+1);
 F0 = 0.005*rand(1,N+1);
