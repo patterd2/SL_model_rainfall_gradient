@@ -11,10 +11,10 @@ SPACE_TIME_PLOT = 1;
 FINAL_PLOT = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 400; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
-n = 30000; % number of time steps
+n = 3000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -37,9 +37,9 @@ mu_s = 0;
 nu = 0.05;
 nu_s = 0;
 
-alpha_c = 0.2;
-alpha_s = 0.8;
-beta_c = 0.4;
+alpha_c = 0.1;
+alpha_s = 0.9;
+beta_c = 0.5;
 beta_s = 0.1;
 
 gamma = 0;
@@ -227,7 +227,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,1)
     h1 = pcolor(G(:,N+1:2*N+1));
     shading interp
-    title('Grass');
+    %title('Grass');
     set(h1, 'EdgeColor', 'none');
     ylabel('Time');
     caxis([0,1])
@@ -240,7 +240,7 @@ if SPACE_TIME_PLOT == 1
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
     set(gca,'linewidth',4);
-    set(gca,'FontSize',20);
+    set(gca,'FontSize',20);    
     %xticklabels({num2str(0), num2str(L/4), num2str(L/2), num2str(3*L/4), num2str(L)});
     %yticks([0 floor(n/4) floor(n/2) floor(3*n/4) floor(n)]);
     %yticklabels({num2str(0), num2str(n*h/4), num2str(n*h/2), num2str(3*n*h/4), num2str(n*h)});
@@ -249,7 +249,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,2)
     h2 = pcolor(S(:,N+1:2*N+1));
     shading interp
-    title('Saplings');
+    %title('Saplings');
     set(h1, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -263,7 +263,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,3)
     h3 = pcolor(T(:,N+1:2*N+1));
     shading interp
-    title('Savanna Trees');
+    %title('Savanna Trees');
     set(h3, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -277,7 +277,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,4)
     h4 = pcolor(F(:,N+1:2*N+1));
     shading interp
-    title('Forest Trees');
+    %title('Forest Trees');
     set(h4, 'EdgeColor', 'none');
     caxis([0,1])
     set(h1, 'EdgeColor', 'none');
@@ -351,32 +351,39 @@ set(gca,'FontSize',18);
 %% Plots of averages versus time
 figure(4);
 time_interval = 0:h:(n-1)*h;
-subplot(2,2,1), plot(time_interval, mean(G(:,N+1:2*N+1),2),'r','LineWidth',1);
-xlabel('t');
-ylabel('< G(\cdot,t) >');
-set(gca,'linewidth',1);
-set(gca,'FontSize',20);
-axis tight;
+subplot(2,2,1), plot(time_interval, mean(G(:,N+1:2*N+1)),'r','LineWidth',2);
+%xlim([0 L])
+%ylim([0 1])
+%xlabel('\Omega');
+%ylabel('Grass Density');
+set(gca,'linewidth',1.25);
+set(gca,'FontSize',12);
+dim = [.24 .615 .3 .3];
+str = sprintf('\\bf\\sigma = %.2f', disp);
+annotation('textbox',dim,'String',str,'FitBoxToText','on','LineWidth',1.25,'FontSize',11,'Margin',2.5,'HorizontalAlignment','center');
 
-subplot(2,2,2), plot(time_interval, mean(S(:,N+1:2*N+1),2),'r','LineWidth',1);
-xlabel('t');
-ylabel('< S(\cdot,t) >');
-set(gca,'linewidth',1);
-set(gca,'FontSize',20);
-axis tight;
+subplot(2,2,2), plot(0:delta:L,S(end,N+1:2*N+1),'r','LineWidth',2);
+xlim([0 L])
+ylim([0 1])
+xlabel('\Omega');
+ylabel('Sapling Density');
+set(gca,'linewidth',1.25);
+set(gca,'FontSize',12);
 
-subplot(2,2,3), plot(time_interval,mean(T(:,N+1:2*N+1),2),'r','LineWidth',1);
-xlabel('t');
-ylabel('< T(\cdot,t) >');
-set(gca,'linewidth',1);
-set(gca,'FontSize',20);
-axis tight;
+subplot(2,2,3), plot(0:delta:L,T(end,N+1:2*N+1),'r','LineWidth',2);
+xlim([0 L])
+ylim([0 1])
+xlabel('\Omega');
+ylabel('Savanna Density');
+set(gca,'linewidth',1.25);
+set(gca,'FontSize',12);
 
-subplot(2,2,4), plot(time_interval, mean(F(:,N+1:2*N+1),2),'r','LineWidth',1);
-xlabel('t');
-ylabel('< F(\cdot,t) >');
-set(gca,'linewidth',1);
-set(gca,'FontSize',20);
-axis tight;
+subplot(2,2,4), plot(0:delta:L,F(end,N+1:2*N+1),'r','LineWidth',2);
+xlim([0 L])
+ylim([0 1])
+xlabel('\Omega');
+ylabel('Forest Density');
+set(gca,'linewidth',1.25);
+set(gca,'FontSize',12);
 hold on;
 
