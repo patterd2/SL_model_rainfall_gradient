@@ -14,7 +14,7 @@ L = 1; % working on [0,L]
 N = 300; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
-n = 30000; % number of time steps
+n = 5000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -39,7 +39,7 @@ nu_s = 0;
 
 alpha_c = 0.2;
 alpha_s = 0.8;
-beta_c = 0.4;
+beta_c = 2;
 beta_s = 0.1;
 
 gamma = 0;
@@ -167,7 +167,6 @@ for i = 2:n
         E(i,k) = delta*sum(integrand.*Trap)./C_W;
     end
     % For numerical stability take max with zero and min with one
-    % add error message here later
     G(i,:) = min(max(G(i,:),0),1);
     S(i,:) = min(max(S(i,:),0),1);
     T(i,:) = min(max(T(i,:),0),1);
@@ -227,7 +226,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,1)
     h1 = pcolor(G(:,N+1:2*N+1));
     shading interp
-    title('Grass');
+    %title('Grass');
     set(h1, 'EdgeColor', 'none');
     ylabel('Time');
     caxis([0,1])
@@ -249,7 +248,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,2)
     h2 = pcolor(S(:,N+1:2*N+1));
     shading interp
-    title('Saplings');
+    %title('Saplings');
     set(h1, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -263,7 +262,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,3)
     h3 = pcolor(T(:,N+1:2*N+1));
     shading interp
-    title('Savanna Trees');
+    %title('Savanna Trees');
     set(h3, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -277,7 +276,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,4)
     h4 = pcolor(F(:,N+1:2*N+1));
     shading interp
-    title('Forest Trees');
+    %title('Forest Trees');
     set(h4, 'EdgeColor', 'none');
     caxis([0,1])
     set(h1, 'EdgeColor', 'none');
@@ -378,5 +377,3 @@ ylabel('< F(\cdot,t) >');
 set(gca,'linewidth',1);
 set(gca,'FontSize',20);
 axis tight;
-hold on;
-
