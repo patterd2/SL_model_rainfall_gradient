@@ -1,7 +1,5 @@
-%% 1D Simulation of spatial savanna model with precipitation
-% Explicit Euler in time, 2D trapezoidal rule in space
-% the boundaries are absorbing
-% NB fire is modelled as the integral of phi of G
+%% 1D Simulation of spatial savanna model with precipitation gradient
+% Explicit Euler in time, trapezoidal rule in space
 tic
 %% Set options for plots/movies
 close all
@@ -11,13 +9,15 @@ SPACE_TIME_PLOT = 1;
 FINAL_PLOT = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 500; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
 n = 5000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
+BC = 'reflecting'; % current options: 'reflecting', 'open', 'periodic'
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
+P_fun_piece = @(x, p_0, p_1, slope) max(min((p_0+p_1/2) + slope*(x-0.5), p_0+p_1),p_0);
 mu_p = @(mu, mu_s, p) mu + mu_s.*p;
 nu_p = @(nu, nu_s, p) nu + nu_s.*p;
 alpha_p = @(alpha, alpha_s, p) alpha + alpha_s.*p;
@@ -39,7 +39,7 @@ nu_s = 0;
 
 alpha_c = 0.2;
 alpha_s = 0.8;
-beta_c = 2;
+beta_c = 1.9;
 beta_s = 0.1;
 
 gamma = 0;
@@ -59,31 +59,57 @@ sigma_T = disp; % seed dispersal radius savanna trees
 sigma_W = disp; % fire spread radius
 %% Set up the initial distributions of the cover types on the grid
 % each row is one time step of the simulation
-% solution is a block matrix [LB; SOL; RB] where LB and RB are fixed
-% boundary conditions corresponding to a "Dirichlet type boundary"
+% solution is a block matrix [LB; SOL; RB]
 
 G0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
 S0 = rand(1,N+1);%0.1*ones(1,N+1);
-T0 = rand(1,N+1);%0.1*ones(1,N+1);
-F0 = rand(1,N+1);%0.005*rand(1,N+1);
+T0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
+F0 = rand(1,N+1);
 
 CR = G0 + S0 + T0 + F0;
 G0 = G0./CR;
 S0 = S0./CR;
 T0 = T0./CR;
 F0 = F0./CR;
-LB_G = fliplr(G0(1,2:end));
-RB_G = fliplr(G0(1,1:end-1));
-LB_S = fliplr(S0(1,2:end));
-RB_S = fliplr(S0(1,1:end-1));
-LB_T = fliplr(T0(1,2:end));
-RB_T = fliplr(T0(1,1:end-1));
-LB_F = fliplr(F0(1,2:end));
-RB_F = fliplr(F0(1,1:end-1));
-G = [LB_G G0 RB_G];
-S = [LB_S S0 RB_S];
-T = [LB_T T0 RB_T];
-F = [LB_F F0 RB_F];
+switch BC
+    case 'reflecting'
+        LB_G = fliplr(G0(1,2:end));
+        RB_G = fliplr(G0(1,1:end-1));
+        LB_S = fliplr(S0(1,2:end));
+        RB_S = fliplr(S0(1,1:end-1));
+        LB_T = fliplr(T0(1,2:end));
+        RB_T = fliplr(T0(1,1:end-1));
+        LB_F = fliplr(F0(1,2:end));
+        RB_F = fliplr(F0(1,1:end-1));
+    case 'open'
+        LB_G = zeros(1,N);
+        RB_G = zeros(1,N);
+        LB_S = zeros(1,N);
+        RB_S = zeros(1,N);
+        LB_T = zeros(1,N);
+        RB_T = zeros(1,N);
+        LB_F = zeros(1,N);
+        RB_F = zeros(1,N);
+    case 'periodic'
+        LB_G = G0(1,2:end);
+        RB_G = G0(1,1:end-1);
+        LB_S = S0(1,2:end);
+        RB_S = S0(1,1:end-1);
+        LB_T = T0(1,2:end);
+        RB_T = T0(1,1:end-1);
+        LB_F = F0(1,2:end);
+        RB_F = F0(1,1:end-1);
+    otherwise
+        error('boundary condition mispecified...')
+end
+G = zeros(n,3*N+1);
+S = zeros(n,3*N+1);
+T = zeros(n,3*N+1);
+F = zeros(n,3*N+1);
+G(1,:) = [LB_G G0 RB_G];
+S(1,:) = [LB_S S0 RB_S];
+T(1,:) = [LB_T T0 RB_T];
+F(1,:) = [LB_F F0 RB_F];
 % compute the convolution for E
 X = 0:delta:L;
 X_L = X-L;
@@ -108,6 +134,7 @@ E(1,:) = E(1,:)/C_W;
 %% Compute the birth and mortality matrices as a function of rainfall
 % this computes the standard (deterministic) gradient values
 P_grad = P_fun(X,p_0,p_1); % compute the rainfall gradient along the x-axis
+%P_grad = P_fun_piece(X,p_0,p_1,3.45*p_1);
 mu_grad = mu_p(mu, mu_s, P_grad);
 nu_grad = nu_p(nu, nu_s, P_grad);
 alpha_grad = alpha_p(alpha_c, alpha_s, P_grad);
@@ -153,14 +180,29 @@ for i = 2:n
     
     F(i,(N+1):2*N+1) = ones(1,N+1) - S(i,(N+1):2*N+1) - T(i,(N+1):2*N+1) - G(i,(N+1):2*N+1);
     % now need to update the extended parts of the solution
-    G(i,1:N) = fliplr(G(i,N+2:2*N+1));
-    G(i,2*N+2:3*N+1) = fliplr(G(i,(N+1):2*N));
-    S(i,1:N) = fliplr(S(i,N+2:2*N+1));
-    S(i,2*N+2:3*N+1) = fliplr(S(i,(N+1):2*N));
-    T(i,1:N) = fliplr(T(i,N+2:2*N+1));
-    T(i,2*N+2:3*N+1) = fliplr(T(i,(N+1):2*N));
-    F(i,1:N) = fliplr(F(i,N+2:2*N+1));
-    F(i,2*N+2:3*N+1) = fliplr(F(i,(N+1):2*N));
+    switch BC
+        case 'reflecting'
+            G(i,1:N) = fliplr(G(i,N+2:2*N+1));
+            G(i,2*N+2:3*N+1) = fliplr(G(i,(N+1):2*N));
+            S(i,1:N) = fliplr(S(i,N+2:2*N+1));
+            S(i,2*N+2:3*N+1) = fliplr(S(i,(N+1):2*N));
+            T(i,1:N) = fliplr(T(i,N+2:2*N+1));
+            T(i,2*N+2:3*N+1) = fliplr(T(i,(N+1):2*N));
+            F(i,1:N) = fliplr(F(i,N+2:2*N+1));
+            F(i,2*N+2:3*N+1) = fliplr(F(i,(N+1):2*N));
+        case 'open'
+        case 'periodic'
+            G(i,1:N) = G(i,N+2:2*N+1);
+            G(i,2*N+2:3*N+1) = G(i,(N+1):2*N);
+            S(i,1:N) = S(i,N+2:2*N+1);
+            S(i,2*N+2:3*N+1) = S(i,(N+1):2*N);
+            T(i,1:N) = T(i,N+2:2*N+1);
+            T(i,2*N+2:3*N+1) = T(i,(N+1):2*N);
+            F(i,1:N) = F(i,N+2:2*N+1);
+            F(i,2*N+2:3*N+1) = F(i,(N+1):2*N);
+        otherwise
+            error('boundary condition mispecified...')
+    end
     
     for k = 1:N+1
         integrand = tempW(k,:).*( G(i,:)+gamma*(T(i,:)+S(i,:)) );
@@ -226,7 +268,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,1)
     h1 = pcolor(G(:,N+1:2*N+1));
     shading interp
-    %title('Grass');
+    title('Grass');
     set(h1, 'EdgeColor', 'none');
     ylabel('Time');
     caxis([0,1])
@@ -248,7 +290,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,2)
     h2 = pcolor(S(:,N+1:2*N+1));
     shading interp
-    %title('Saplings');
+    title('Saplings');
     set(h1, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -262,7 +304,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,3)
     h3 = pcolor(T(:,N+1:2*N+1));
     shading interp
-    %title('Savanna Trees');
+    title('Savanna Trees');
     set(h3, 'EdgeColor', 'none');
     caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
@@ -276,7 +318,7 @@ if SPACE_TIME_PLOT == 1
     subplot(2,2,4)
     h4 = pcolor(F(:,N+1:2*N+1));
     shading interp
-    %title('Forest Trees');
+    title('Forest Trees');
     set(h4, 'EdgeColor', 'none');
     caxis([0,1])
     set(h1, 'EdgeColor', 'none');
