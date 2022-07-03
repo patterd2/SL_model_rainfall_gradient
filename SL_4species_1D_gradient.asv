@@ -36,7 +36,7 @@ p_right=1;
 p_0=p_left;
 p_1=(p_right-p_left)/L;
 
-grad_slope = 3.4; % modifies the path through the gradient
+grad_slope = 1.5; % modifies the path through the gradient
 
 mu = 0.1;
 mu_s = 0;
@@ -285,14 +285,9 @@ if PHASE_SPACE_PLOTS == 1
 end
 %% Space-time plot of dynamics
 if SPACE_TIME_PLOT == 1
-    % For 6B gradient, supercritical Hopf at P=0.1802, heteroclinic to
-    % saddle at P = 0.43328...
-    [tempon,osc_onset] = min(abs(P_grad-0.1802));
-    [tempoff,osc_offset] = min(abs(P_grad-0.43328));
-    
     fST = figure;
     fST.Name = ['Evolution over time'];
-
+    
     subplot(2,2,1)
     h1 = pcolor(G(:,N+1:2*N+1));
     shading interp
@@ -308,9 +303,6 @@ if SPACE_TIME_PLOT == 1
     yticks([1 floor(n/2) floor(n)]);
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
-    hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     %xticklabels({num2str(0), num2str(L/4), num2str(L/2), num2str(3*L/4), num2str(L)});
@@ -328,9 +320,6 @@ if SPACE_TIME_PLOT == 1
     yticks([1 floor(n/2) floor(n)]);
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
-    hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     
@@ -345,9 +334,6 @@ if SPACE_TIME_PLOT == 1
     yticks([1 floor(n/2) floor(n)]);
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
-    hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     
@@ -366,9 +352,8 @@ if SPACE_TIME_PLOT == 1
     yticks([1 floor(n/2) floor(n)]);
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
-    hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
+    xline(0.5,'--'r');
+    
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     
