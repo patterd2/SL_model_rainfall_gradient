@@ -6,13 +6,13 @@ tic
 fprintf('\n');
 DO_MOVIE = 0; % i.e. write movie to avi file for playback, else just plots
 SPACE_TIME_PLOT = 1;
-SPATIAL_AVERAGES = 0;
+SPATIAL_AVERAGES = 1;
 STACKED_PLOTS = 0;
 FINAL_PLOT = 0;
-PHASE_SPACE_PLOTS = 1;
+PHASE_SPACE_PLOTS = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 200; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
 n = 5000; % number of time steps
@@ -300,17 +300,14 @@ if SPACE_TIME_PLOT == 1
     set(h1, 'EdgeColor', 'none');
     ylabel('Time');
     caxis([0,1])
-    set(h1, 'EdgeColor', 'none');
-    ylabel('Time');
-    caxis([0,1])
     xticks([1 floor((N+1)/2) floor((N+1))]);
     xticklabels({num2str(0), num2str(L/2), num2str(L)});
     yticks([1 floor(n/2) floor(n)]);
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
     hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
+%     xline(osc_onset,'--r','LineWidth',1);
+%     xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     %xticklabels({num2str(0), num2str(L/4), num2str(L/2), num2str(3*L/4), num2str(L)});
@@ -329,8 +326,8 @@ if SPACE_TIME_PLOT == 1
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
     hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
+%     xline(osc_onset,'--r','LineWidth',1);
+%     xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     
@@ -346,8 +343,8 @@ if SPACE_TIME_PLOT == 1
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
     hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
+%     xline(osc_onset,'--r','LineWidth',1);
+%     xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     
@@ -367,8 +364,8 @@ if SPACE_TIME_PLOT == 1
     yticklabels({num2str(0), num2str(n*h/2), num2str(n*h)});
     xlabel('\Omega');
     hold on;
-    xline(osc_onset,'--r','LineWidth',1);
-    xline(osc_offset,'--r','LineWidth',1);
+%     xline(osc_onset,'--r','LineWidth',1);
+%     xline(osc_offset,'--r','LineWidth',1);
     set(gca,'linewidth',4);
     set(gca,'FontSize',20);
     

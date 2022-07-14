@@ -8,13 +8,13 @@ close all
 fprintf('\n');
 DO_MOVIE = 0; % i.e. write movie to avi file for playback, else just plots
 SPACE_TIME_PLOT = 0;
-FINAL_PLOT = 1;
+FINAL_PLOT = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 500; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.05; % time discretisation parameter
-n = 2000; % number of time steps
+n = 10000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -39,7 +39,7 @@ s_2 = 0.05;% s_2's standard value is 0.05
 %linestyles = ['-',':','-.','-',':','-.'];
 fill_color = ['r','k','b','c','m','g'];
 disp = 0.01;
-ICs = 10;
+ICs = 2;
 sol_norm = zeros(length(disp),length(ICs));
 relative_error = zeros(length(disp),n-1);
 
