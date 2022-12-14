@@ -1,6 +1,9 @@
 %% 1D Simulation of spatial savanna model with precipitation gradient
 % Explicit Euler in time, trapezoidal rule in space
 tic
+clear all
+close all
+
 %% Set options for plots/movies
 %close all
 fprintf('\n');
@@ -12,15 +15,15 @@ FINAL_PLOT = 0;
 PHASE_SPACE_PLOTS = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 200; % N+1 grid points
+N = 300; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
-n = 5000; % number of time steps
+n = 2000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 BC = 'reflecting'; % current options: 'reflecting', 'open', 'periodic'
 %% Function definitions
-P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
-P_fun_piece = @(x, p_0, p_1, slope) max(min((p_0+p_1/2) + slope*(x-0.5), p_0+p_1),p_0);
+P_fun = @(x, p_0, p_1) p_0 + p_1.*x/L;
+P_fun_piece = @(x, p_0, p_1, slope,L) max(min( (p_0+p_1/2) + slope*(x-L/2)/L, p_0+p_1),p_0);
 mu_p = @(mu, mu_s, p) mu + mu_s.*p;
 nu_p = @(nu, nu_s, p) nu + nu_s.*p;
 alpha_p = @(alpha, alpha_s, p) alpha + alpha_s.*p;
@@ -34,19 +37,25 @@ phi = @(f_0_fun, f_1, g, t_2_fun, s_2) f_0_fun + (f_1-f_0_fun)./(1 + exp(-(g-t_2
 p_left=0;
 p_right=1;
 p_0=p_left;
-p_1=(p_right-p_left)/L;
+p_1=(p_right-p_left);
 
-grad_slope = 3.4; % modifies the path through the gradient
+grad_slope = 2; % modifies the path through the gradient
 
 mu = 0.1;
 mu_s = 0;
 nu = 0.05;
 nu_s = 0;
 
-alpha_c = 0.2;
-alpha_s = 0.8;
-beta_c = 1.5;
-beta_s = 0.1;
+alpha_left=1.2;
+alpha_right=1.2;
+
+beta_left=0.2;
+beta_right=0.2;
+
+alpha_c = alpha_left;
+alpha_s = alpha_right-alpha_left;
+beta_c = beta_left;
+beta_s = beta_right-beta_left;
 
 gamma = 0;
 
@@ -59,7 +68,7 @@ f_1_ref = 0.9;
 t_2_ref = 0.4;
 s_2 = 0.05;% s_2 standard value is 0.05
 
-disp = 0.02;
+disp = 0.025;
 sigma_F = disp; % seed dispersal radius forest trees
 sigma_T = disp; % seed dispersal radius savanna trees
 sigma_W = disp; % fire spread radius
@@ -67,10 +76,16 @@ sigma_W = disp; % fire spread radius
 % each row is one time step of the simulation
 % solution is a block matrix [LB; SOL; RB]
 
-G0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
-S0 = rand(1,N+1);%0.1*ones(1,N+1);
-T0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
-F0 = rand(1,N+1);
+% G0 = 0*rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
+% S0 = rand(1,N+1);%0.1*ones(1,N+1);
+% T0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
+% F0 = 0*rand(1,N+1);
+
+G0 = 0.5*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
+S0 = 0.1*ones(1,N+1);%0.1*ones(1,N+1);
+T0 = 0.4*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
+F0 = 0*rand(1,N+1);
+
 
 CR = G0 + S0 + T0 + F0;
 G0 = G0./CR;
@@ -139,7 +154,7 @@ C_W = max(temp_normalise);
 E(1,:) = E(1,:)/C_W;
 %% Compute the birth and mortality matrices as a function of rainfall
 %P_grad = P_fun(X,p_0,p_1); % compute the rainfall gradient along the x-axis
-P_grad = P_fun_piece(X,p_0,p_1,grad_slope);
+P_grad = P_fun_piece(X,p_0,p_1,grad_slope,L);
 mu_grad = mu_p(mu, mu_s, P_grad);
 nu_grad = nu_p(nu, nu_s, P_grad);
 alpha_grad = alpha_p(alpha_c, alpha_s, P_grad);
@@ -461,3 +476,9 @@ if SPATIAL_AVERAGES == 1
     set(gca,'FontSize',20);
     axis tight;
 end
+%%
+% figure
+% plot(alpha_grad,'.');
+% 
+% figure
+% plot(beta_grad,'.');

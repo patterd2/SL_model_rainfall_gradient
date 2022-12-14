@@ -10,10 +10,10 @@ SPACE_TIME_PLOT = 1;
 FINAL_PLOT = 1;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 400; % N+1 grid points
+N = 500; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
-h = 0.1; % time discretisation parameter
-n = 5000; % number of time steps
+h = 0.05; % time discretisation parameter
+n = 4000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -57,7 +57,9 @@ for IC = 1 % 1 for high grass IC, 2 for low grass IC, 3 for mixed spatial stripe
         elseif IC == 3
             G0 = 0.5*(1+cos(12*pi*(0:delta:L)));
         elseif IC == 4
-            G0 = phi(0.95, 0.05, 0:delta:L, 0.5, 0.1);
+            G0 = zeros(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, 0.1);
+        elseif IC==5
+            G0 = zeros(1,N+1);
         else
             G0 = rand(1,N+1);
         end

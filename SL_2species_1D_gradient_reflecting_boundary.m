@@ -4,17 +4,17 @@
 % NB fire is modelled as the integral of phi of G
 tic
 %% Set options for plots/movies
-close all
+%close all
 fprintf('\n');
 DO_MOVIE = 0; % i.e. write movie to avi file for playback, else just plots
 SPACE_TIME_PLOT = 0;
-FINAL_PLOT = 0;
+FINAL_PLOT = 1;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 500; % N+1 grid points
+N = 600; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
-h = 0.05; % time discretisation parameter
-n = 10000; % number of time steps
+h = 0.1; % time discretisation parameter
+n = 1000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -38,7 +38,7 @@ s_2 = 0.05;% s_2's standard value is 0.05
 
 %linestyles = ['-',':','-.','-',':','-.'];
 fill_color = ['r','k','b','c','m','g'];
-disp = 0.01;
+disp = 0.26;
 ICs = 2;
 sol_norm = zeros(length(disp),length(ICs));
 relative_error = zeros(length(disp),n-1);
@@ -48,7 +48,7 @@ for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stri
     for count = 1:length(disp)
         
         sigma_F = disp(count); % seed dispersal radius forest trees
-        sigma_W = disp(count);%disp(count); % fire spread radius
+        sigma_W = sigma_F; %disp(count); % fire spread radius
         
         %% Set up the initial distributions of the cover types on the grid
         % each row is one time step of the simulation
@@ -163,12 +163,12 @@ for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stri
             subplot(2,2,4), area(0:delta:L,ones(1,N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
             hold on;
             subplot(2,2,4), area(0:delta:L,G(end,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
-            title('Final time');
+            %title('Final time');
             xlim([0 L]);
             ylim([0 1]);
-            legend('Forest','Grass','Location','SouthWest');
-            set(gca,'linewidth',1.25);
-            set(gca,'FontSize',18);
+            %legend('Forest','Grass','Location','SouthWest');
+            %set(gca,'linewidth',1.25);
+            %set(gca,'FontSize',25);
             %             if IC == 1
             %                 dim = [.24 .615 .3 .3];
             %                 str = sprintf('\\bf\\sigma = %.2f', disp(count));
@@ -186,10 +186,10 @@ for IC = ICs % 1 for high grass IC, 2 for low grass IC, 4 for mixed spatial stri
             %                 str = sprintf('\\bf\\sigma = %.2f', disp(count));
             %                 annotation('textbox',dim,'String',str,'FitBoxToText','on','LineWidth',1.25,'FontSize',11,'Margin',2.5,'HorizontalAlignment','center');
             %             end
-            xlabel('\Omega');
-            ylabel('Density');
+            %xlabel('\Omega');
+            %ylabel('Density');
             set(gca,'linewidth',1.25);
-            set(gca,'FontSize',12);
+            set(gca,'FontSize',22);
             
             hold on;
         end

@@ -1,7 +1,7 @@
 tic
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 600; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -23,16 +23,20 @@ f_1_ref = 0.9;
 t_2_ref = 0.4;
 s_2 = 0.05; % s_2's standard value is 0.05
 
-disp = 0.02;%0.01:0.01:0.2;
+disp = 0.26:0.01:0.3;
 %disp = fliplr(disp);
 branches = 1;
 sol_norm = zeros(branches,length(disp)); 
 error = zeros(branches,length(disp));
 principal_eig = zeros(branches,length(disp));
-error_tolerance = 1e-10; % for the nonlinear solver
+error_tolerance = 1e-14; % for the nonlinear solver
 fig_count = 0;
+
 %G = load('unstable_branch.mat'); % fill in unstable branch of the saddle
 %G = G.G;
+%G = G + 0.125;
+%G = ones(1,N+1);
+%G=G(end,N+1:2*N+1);
 for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
     % 4 for mixed spatial stripes between the two species, 3 for a sigmoidal transition
     for count = 1:length(disp)
@@ -40,7 +44,8 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         fprintf('\n');
         fig_count = fig_count + 1;
         sigma_F = disp(count); % seed dispersal radius forest trees
-        sigma_W = 0.01; % fire spread radius
+        sigma_W = sigma_F; % fire spread radius
+        
         %% Set up the initial distributions of the cover types on the grid
         %G = G + 0.01*(rand(1,N+1)-0.5);
         %G = 0.5.*(1+cos(12*pi*(0:delta:L))).*(1-(0:delta:L)); % sinusoidal initial condition
@@ -100,8 +105,8 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         % second version is the "open" boundary condition
 %         f = @(x) - alpha_grad.*((delta*sum( tempF.*(repmat([fliplr(0*x(1:N)) 1-x 0*fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*(x) + ...
 %             phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*((repmat([0*fliplr(x(1:N)) x 0*fliplr(x(2:N+1))],N+1,1))).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
-        options = optimoptions('fsolve','Display','none','OptimalityTolerance',...
-            error_tolerance,'StepTolerance',error_tolerance);
+        options = optimoptions('fsolve','Display','iter','OptimalityTolerance',...
+            error_tolerance,'StepTolerance',error_tolerance,'MaxIterations',50);
         [G,fval,exitflag,output,jacobian] = fsolve(f,G,options); % use previous solution value as initial guess for nonlinear solve
         % store the relative error for analysis later
         error(jj,count) = delta*trapz(abs(fval));
@@ -132,7 +137,7 @@ end
 %% Plot the L^1 norm of the solution versus the dispersal parameter sigma
 figure(100);
 hold on;
-L1_tolerance = 1e-4;
+L1_tolerance = 1e-7;
 for i = 1:branches
     for j = 1:length(disp)
         if principal_eig(i,j) < 0 && error(i,j) < L1_tolerance
@@ -147,11 +152,11 @@ for i = 1:branches
     end
 end
 hold on;
-xlabel('\sigma');
-ylabel('|G|');
-xlim([0 0.35]);
-ylim([0 1.05]);
-yticks([0 0.2 0.4 0.6 0.8 1]);
+%xlabel('\sigma');
+%ylabel('|G|');
+xlim([0 0.3]);
+ylim([0 1.1]);
+yticks([0 0.25 0.5 0.75 1]);
 set(gca,'linewidth',2);
 set(gca,'FontSize',15);
 %%
