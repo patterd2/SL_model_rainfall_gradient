@@ -10,10 +10,10 @@ SPACE_TIME_PLOT = 1;
 FINAL_PLOT = 1;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 500; % N+1 grid points
+N = 600; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
-h = 0.05; % time discretisation parameter
-n = 4000; % number of time steps
+h = 0.1; % time discretisation parameter
+n = 3000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x;
@@ -39,12 +39,12 @@ linestyles = ['-',':','-.'];
 linecolor = ['r','k','b'];
 
 for IC = 1 % 1 for high grass IC, 2 for low grass IC, 3 for mixed spatial stripes between the two species, 4 for a sigmoidal transition, 5+ for random
-    disp = 0.1;
+    disp = 0.3;
     relative_error = zeros(length(disp),n-1);
     for count = 1:length(disp)
         
         sigma_F = disp(count); % seed dispersal radius forest trees
-        sigma_W = 0.01;%disp(count); % fire spread radius
+        sigma_W = disp(count); % fire spread radius
         
         %% Set up the initial distributions of the cover types on the grid
         % each row is one time step of the simulation

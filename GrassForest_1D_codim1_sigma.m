@@ -23,8 +23,8 @@ f_1_ref = 0.9;
 t_2_ref = 0.4;
 s_2 = 0.05; % s_2's standard value is 0.05
 
-disp = 0.26:0.01:0.3;
-%disp = fliplr(disp);
+disp = 0.2085:0.005:0.21;
+disp = fliplr(disp);
 branches = 1;
 sol_norm = zeros(branches,length(disp)); 
 error = zeros(branches,length(disp));
@@ -34,8 +34,8 @@ fig_count = 0;
 
 %G = load('unstable_branch.mat'); % fill in unstable branch of the saddle
 %G = G.G;
-%G = G + 0.125;
-%G = ones(1,N+1);
+%G = G + 0.01;
+%G = 0.9*ones(1,N+1);
 %G=G(end,N+1:2*N+1);
 for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
     % 4 for mixed spatial stripes between the two species, 3 for a sigmoidal transition
@@ -68,7 +68,7 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         hold on;
         xlim([0 L]); ylim([0 1]);
         set(gca,'linewidth',1.25); set(gca,'FontSize',18);
-        xlabel('\Omega'); ylabel('Density');
+        xlabel('\Omega'); ylabel('Grass');
         set(gca,'linewidth',1.25); set(gca,'FontSize',12); hold on;
         %% set up the spatial grid and pre calculate the convolution matrices
         X = 0:delta:L;
@@ -103,8 +103,8 @@ for jj = 1:branches % 1 for high grass IC, 2 for low grass IC,
         f = @(x) - alpha_grad.*((delta*sum( tempF.*(1 - repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*x + ...
             phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*(repmat([fliplr(x(1:N)) x fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
         % second version is the "open" boundary condition
-%         f = @(x) - alpha_grad.*((delta*sum( tempF.*(repmat([fliplr(0*x(1:N)) 1-x 0*fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*(x) + ...
-%             phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*((repmat([0*fliplr(x(1:N)) x 0*fliplr(x(2:N+1))],N+1,1))).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
+        % f = @(x) - alpha_grad.*((delta*sum( tempF.*(repmat([fliplr(0*x(1:N)) 1-x 0*fliplr(x(2:N+1))],N+1,1)).*Trap, 2))'/C_F).*(x) + ...
+        %     phi(f_0_ref, f_1_ref, ((delta*sum( tempW.*((repmat([0*fliplr(x(1:N)) x 0*fliplr(x(2:N+1))],N+1,1))).*Trap, 2))'/C_W), t_2_ref, s_2).*(1-x);
         options = optimoptions('fsolve','Display','iter','OptimalityTolerance',...
             error_tolerance,'StepTolerance',error_tolerance,'MaxIterations',50);
         [G,fval,exitflag,output,jacobian] = fsolve(f,G,options); % use previous solution value as initial guess for nonlinear solve
@@ -154,8 +154,8 @@ end
 hold on;
 %xlabel('\sigma');
 %ylabel('|G|');
-xlim([0 0.3]);
-ylim([0 1.1]);
+xlim([0 0.4]);
+ylim([0.0 1.1]);
 yticks([0 0.25 0.5 0.75 1]);
 set(gca,'linewidth',2);
 set(gca,'FontSize',15);

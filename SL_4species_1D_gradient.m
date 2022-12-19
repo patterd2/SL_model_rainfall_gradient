@@ -1,26 +1,27 @@
 %% 1D Simulation of spatial savanna model with precipitation gradient
 % Explicit Euler in time, trapezoidal rule in space
 tic
-clear all
-close all
+%clear all
+%close all
 
 %% Set options for plots/movies
 %close all
 fprintf('\n');
 DO_MOVIE = 0; % i.e. write movie to avi file for playback, else just plots
-SPACE_TIME_PLOT = 1;
-SPATIAL_AVERAGES = 1;
-STACKED_PLOTS = 0;
+SPACE_TIME_PLOT = 0;
+SPATIAL_AVERAGES = 0;
+STACKED_PLOTS = 1;
 FINAL_PLOT = 0;
 PHASE_SPACE_PLOTS = 0;
 %% Numerical method parameters
 L = 1; % working on [0,L]
-N = 300; % N+1 grid points
+N = 500; % N+1 grid points
 delta = L/N;  % spatial discretization parameter
 h = 0.1; % time discretisation parameter
 n = 2000; % number of time steps
 tau = (n-1)*h; % simulations time domain is [0,tau]
 BC = 'reflecting'; % current options: 'reflecting', 'open', 'periodic'
+rng(18502984,'twister');
 %% Function definitions
 P_fun = @(x, p_0, p_1) p_0 + p_1.*x/L;
 P_fun_piece = @(x, p_0, p_1, slope,L) max(min( (p_0+p_1/2) + slope*(x-L/2)/L, p_0+p_1),p_0);
@@ -39,23 +40,23 @@ p_right=1;
 p_0=p_left;
 p_1=(p_right-p_left);
 
-grad_slope = 2; % modifies the path through the gradient
+grad_slope = 1; % modifies the path through the gradient
 
 mu = 0.1;
 mu_s = 0;
 nu = 0.05;
 nu_s = 0;
 
-alpha_left=1.2;
-alpha_right=1.2;
+% alpha_left=1.2;
+% alpha_right=1.2;
+% 
+% beta_left=0.2;
+% beta_right=0.2;
 
-beta_left=0.2;
-beta_right=0.2;
-
-alpha_c = alpha_left;
-alpha_s = alpha_right-alpha_left;
-beta_c = beta_left;
-beta_s = beta_right-beta_left;
+alpha_c = 0.8;
+alpha_s = 0.5;
+beta_c = 0.15;
+beta_s = 0.1; %beta_right-beta_left;
 
 gamma = 0;
 
@@ -76,15 +77,23 @@ sigma_W = disp; % fire spread radius
 % each row is one time step of the simulation
 % solution is a block matrix [LB; SOL; RB]
 
-% G0 = 0*rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
-% S0 = rand(1,N+1);%0.1*ones(1,N+1);
-% T0 = rand(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
-% F0 = 0*rand(1,N+1);
+% forest IC
+G0 = 0.1*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
+S0 = 0.05*ones(1,N+1);%0.1*ones(1,N+1);
+T0 = 0.05*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
+F0 = 0.8*ones(1,N+1);
 
-G0 = 0.5*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2);
-S0 = 0.1*ones(1,N+1);%0.1*ones(1,N+1);
-T0 = 0.4*ones(1,N+1);%phi(0.95, 0.05, 0:delta:L, 0.1, 0.01);%0.1*ones(1,N+1);
-F0 = 0*rand(1,N+1);
+% Savanna with no pinning IC
+% G0 = ones(1,N+1)-0.05*(0:delta:L);%phi(0.95, 0.05, 0:delta:L, 0.5, s_2); % 0.5*ones(1,N+1);
+% S0 = 0.05*ones(1,N+1);%0.1*ones(1,N+1);
+% T0 = phi(0.4, 0.05, 0:delta:L, 0.3, 0.01);%%0.1*ones(1,N+1);
+% F0 = zeros(1,N+1)+0.15*(0:delta:L);
+
+% Savanna with pinning IC
+% G0 = 0.5*ones(1,N+1);
+% S0 = 0.05*ones(1,N+1);
+% T0 = 0.1*ones(1,N+1);
+% F0 = (0:delta:L);
 
 
 CR = G0 + S0 + T0 + F0;
@@ -154,7 +163,7 @@ C_W = max(temp_normalise);
 E(1,:) = E(1,:)/C_W;
 %% Compute the birth and mortality matrices as a function of rainfall
 %P_grad = P_fun(X,p_0,p_1); % compute the rainfall gradient along the x-axis
-P_grad = P_fun_piece(X,p_0,p_1,grad_slope,L);
+P_grad = phi(0, 1, X, 0.5, 0.1);%P_fun_piece(X,p_0,p_1,grad_slope,L)+0.0*(rand(1,N+1)-0.5);
 mu_grad = mu_p(mu, mu_s, P_grad);
 nu_grad = nu_p(nu, nu_s, P_grad);
 alpha_grad = alpha_p(alpha_c, alpha_s, P_grad);
@@ -280,6 +289,18 @@ if DO_MOVIE
     close(v)
     % or just plotting the solution
 end
+%% Gradient plots
+figure;
+plot(0:delta:L, P_grad,'LineWidth',3);
+hold on;
+%plot(0:delta:L, beta_grad,'LineWidth',3);
+xlim([0 L]);
+ylim([-0.25 1.25]);
+xlabel('\Omega');
+%legend('\alpha(x)','\beta(x)','Location','NorthWest');
+set(gca,'linewidth',1.5);
+set(gca,'FontSize',30);
+
 %% Phase-space plots of the dynamics at certain grid points (0.25, 0.5 & 0.75)
 if PHASE_SPACE_PLOTS == 1
     figure;
@@ -300,7 +321,7 @@ if PHASE_SPACE_PLOTS == 1
 end
 %% Space-time plot of dynamics
 if SPACE_TIME_PLOT == 1
-    % For 6B gradient, supercritical Hopf at P=0.1802, heteroclinic to
+    % For 6B gradient, subcritical Hopf at P=0.1802, heteroclinic to
     % saddle at P = 0.43328...
     [tempon,osc_onset] = min(abs(P_grad-0.1802));
     [tempoff,osc_offset] = min(abs(P_grad-0.43328));
@@ -427,22 +448,22 @@ end
 %% stacked plots
 if STACKED_PLOTS == 1
     figure;
-    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1)+T(end,N+1:2*N+1)+F(end,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0 0.39 0]);
+    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1)+T(end,N+1:2*N+1)+F(end,N+1:2*N+1),'LineWidth',0.001,'FaceColor',[0 0.39 0]);
     hold on;
-    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1)+T(end,N+1:2*N+1),'LineWidth',1.5);
-    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1),'LineWidth',1.5);
-    area(0:delta:L,G(end,N+1:2*N+1),'LineWidth',1.5,'FaceColor',[0.565 0.933 0.565]);
+    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1)+T(end,N+1:2*N+1),'LineWidth',0.01);
+    area(0:delta:L,G(end,N+1:2*N+1)+S(end,N+1:2*N+1),'LineWidth',0.001);
+    area(0:delta:L,G(end,N+1:2*N+1),'LineWidth',0.001,'FaceColor',[0.565 0.933 0.565]);
     xlim([0 L]);
     ylim([0 1]);
-    xticks([0 1/2 1]);
-    xticklabels({num2str(0), num2str(L/2), num2str(L)});
-    yticks([0 1/2 1]);
-    yticklabels({num2str(0), num2str(1/2), num2str(1)});
+    %xticks([0 1/2 1]);
+    %xticklabels({num2str(0), num2str(L/2), num2str(L)});
+    %yticks([0 1/2 1]);
+    %yticklabels({num2str(0), num2str(1/2), num2str(1)});
     xlabel('\Omega');
-    ylabel('Density');
+    %ylabel('Density');
     legend('Forest','Savanna','Saplings','Grass');
-    set(gca,'linewidth',1.25);
-    set(gca,'FontSize',18);
+    set(gca,'linewidth',1.5);
+    set(gca,'FontSize',30);
 end
 %% Plots of averages versus time
 if SPATIAL_AVERAGES == 1
